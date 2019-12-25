@@ -4,17 +4,21 @@ import (
 	"fmt"
 	"strings"
 
-	s "../structure"
-
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 )
 
+type task struct {
+	ID     string
+	Name   string
+	Result chan string
+}
+
 // PackageDispatch to dispatch the packet to goroutines
 func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
-	DEBUG := false
+	DEBUG := true
 	var currentState = make(map[string]string)
-	tasks := make(chan s.Packets)
+	tasks := make(chan task)
 	final := make(chan bool)
 	go func() {
 		for {
@@ -82,13 +86,13 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 				}
 			}
 
-			task := s.Packets{
+			currentTask := task{
 				ID:     "1233",
 				Name:   "123123",
 				Result: make(chan string)}
 			i++
-			tasks <- task
-			<-task.Result
+			tasks <- currentTask
+			<-currentTask.Result
 		}
 		fmt.Println("process", i, "packages")
 		final <- true
