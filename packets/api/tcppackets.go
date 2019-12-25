@@ -3,7 +3,9 @@ package api
 import (
 	"fmt"
 	"strings"
-	
+
+	s "../structure"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 )
@@ -80,7 +82,7 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 				}
 			}
 
-			task := &Packets{
+			task := s.Packets{
 				ID:     "1233",
 				Name:   "123123",
 				Result: make(chan string)}

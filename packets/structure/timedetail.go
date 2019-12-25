@@ -1,4 +1,4 @@
-package apii
+package structure
 
 import "errors"
 
