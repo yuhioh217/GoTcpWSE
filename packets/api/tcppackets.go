@@ -16,7 +16,7 @@ type task struct {
 
 // PackageDispatch to dispatch the packet to goroutines
 func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
-	DEBUG := true
+	DEBUG := false
 	var currentState = make(map[string]string)
 	tasks := make(chan task)
 	final := make(chan bool)
@@ -65,6 +65,8 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 
 				if tcp.Payload != nil {
 					// todo: Parsing the payload info
+
+					fmt.Printf("\033[1;33m%s\033[0m : "+" %s\n", "Pakets", ASCIIDecode(tcp.Payload))
 				}
 			}
 
