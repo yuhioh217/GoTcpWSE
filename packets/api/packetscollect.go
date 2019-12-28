@@ -1,8 +1,6 @@
 package api
 
 import (
-	"fmt"
-	"reflect"
 	"strings"
 
 	// to have
@@ -22,8 +20,6 @@ func (t *tempBuffer) setFive(Five string) {
 func (t *tempBuffer) setType(Type int) {
 	t.Type = Type
 }
-
-var sPool *structure.PacketsPool
 
 // ASCIIDecode to decode the STX adn ETX in packets
 func ASCIIDecode(ascii []uint8) interface{} {
@@ -47,9 +43,23 @@ func PacketsFilter(packStr string) interface{} {
 		packageQueue(packStr)
 		return packStr
 	}
-
 	return nil
 }
+
+/** Pool Process **/
+
+// GetCurrentPool return the current sPool
+func GetCurrentPool() *structure.PacketsPool {
+	return structure.GetInstance()
+}
+
+// ResetsPool to reset the spool data to empty
+func ResetsPool() *structure.PacketsPool {
+	structure.ResetPacketsPool()
+	return structure.GetInstance()
+}
+
+var sPool *structure.PacketsPool
 
 func packageQueue(packStr string) { //, pq *s.PQueue) {
 	// fmt.Println(packStr)
@@ -77,10 +87,17 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 					p.Type = 0
 					p.Five = info
 					sPool.AddPackets(p)
-
-					for _, pool := range sPool.Packets {
-						fmt.Println(reflect.TypeOf(pool))
-					}
+					//fmt.Println(sPool.Packets)
+					pack = nil
+				}
+				break
+			case "best_five_right":
+				if pack == nil {
+					p, _ := pack.(structure.RealtimeFive)
+					p.ID = tempID
+					p.Type = 1
+					p.Five = info
+					sPool.AddPackets(p)
 					//fmt.Println(sPool.Packets)
 					pack = nil
 				}
@@ -91,10 +108,4 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 
 		}
 	}
-
-	/*
-		for packet := range packetspool {
-			fmt.Println(packet)
-		}*/
-
 }

@@ -28,6 +28,11 @@ func GetInstance() *PacketsPool {
 	return instance
 }
 
+// ResetPacketsPool the instance to nil and empty the Packets interface in PacketsPool
+func ResetPacketsPool() {
+	instance = nil
+}
+
 // AddPackets will append the packets to slice
 func (p *PacketsPool) AddPackets(i interface{}) {
 	p.Packets = append(p.Packets, i)
