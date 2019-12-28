@@ -7,19 +7,23 @@ type RealtimeFive struct {
 	Five string
 }
 
-func (r *RealtimeFive) setID(id string) {
+// SetID to set the packets id
+func (r *RealtimeFive) SetID(id string) {
 	r.ID = id
 }
 
-func (r *RealtimeFive) setType(Type int) {
+// SetType to set the packets type
+func (r *RealtimeFive) SetType(Type int) {
 	r.Type = Type
 }
 
-func (r *RealtimeFive) setFive(Five string) {
+// SetFive to set the packets five info
+func (r *RealtimeFive) SetFive(Five string) {
 	r.Five = Five
 }
 
-func (r *RealtimeFive) getDataFinished() bool {
+// GetDataFinished to check the data is ready to pool
+func (r *RealtimeFive) GetDataFinished() bool {
 	if r.ID != "" && r.Type != 0 && r.Five != "" {
 		return true
 	}

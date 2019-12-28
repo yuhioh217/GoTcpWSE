@@ -83,22 +83,26 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 			case "best_five_left":
 				if pack == nil {
 					p, _ := pack.(structure.RealtimeFive)
-					p.ID = tempID
-					p.Type = 0
-					p.Five = info
-					sPool.AddPackets(p)
-					//fmt.Println(sPool.Packets)
+					p.SetID(tempID)
+					p.SetType(0)
+					p.SetFive(info)
+					if p.GetDataFinished() {
+						sPool.AddPackets(p)
+					}
+
 					pack = nil
 				}
 				break
 			case "best_five_right":
 				if pack == nil {
 					p, _ := pack.(structure.RealtimeFive)
-					p.ID = tempID
-					p.Type = 1
-					p.Five = info
-					sPool.AddPackets(p)
-					//fmt.Println(sPool.Packets)
+					p.SetID(tempID)
+					p.SetType(1)
+					p.SetFive(info)
+					if p.GetDataFinished() {
+						sPool.AddPackets(p)
+					}
+
 					pack = nil
 				}
 				break
