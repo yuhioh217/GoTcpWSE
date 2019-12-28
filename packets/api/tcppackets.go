@@ -63,10 +63,11 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 					fmt.Println("Sequence number: ", tcp.Seq)
 				}
 
+				// tcp packets analyze
 				if tcp.Payload != nil {
-					// todo: Parsing the payload info
-
-					fmt.Printf("\033[1;33m%s\033[0m : "+" %s\n", "Pakets", ASCIIDecode(tcp.Payload))
+					if packStr := ASCIIDecode(tcp.Payload); packStr != nil {
+						//fmt.Printf("\033[1;33m%s\033[0m : "+" %s\n", "Pakets", packStr)
+					}
 				}
 			}
 
