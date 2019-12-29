@@ -1,6 +1,7 @@
 package api
 
 import (
+	"strconv"
 	"strings"
 
 	// to have
@@ -59,10 +60,23 @@ func ResetsPool() *structure.PacketsPool {
 	return structure.GetInstance()
 }
 
+// GetRealtimeTradingInstance to get the current realtime trading instance
+func GetRealtimeTradingInstance() *structure.RealtimeTrading {
+	return structure.GetRealTimeTradingInstance()
+}
+
+// ResetRealtimeTradingInstance to reset realtime trading instance
+func ResetRealtimeTradingInstance() *structure.RealtimeTrading {
+	structure.ResetTimeTradingInstance()
+	return structure.GetRealTimeTradingInstance()
+}
+
 var sPool *structure.PacketsPool
+var currentType int
+var currentDeal float64
 
 func packageQueue(packStr string) { //, pq *s.PQueue) {
-	// fmt.Println(packStr)
+	//fmt.Printf(PacketsColor+" :%s\n", "Packets", packStr)
 	// process single package
 	var pack interface{}
 	var tempID string
@@ -75,7 +89,7 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 
 		if datatype, info := StringRule(sub); datatype != "" && info != "" {
 			//fmt.Printf(FiveColor+": %s\n", datatype, info)
-			sPool = structure.GetInstance()
+			sPool = GetCurrentPool()
 			switch datatype {
 			case "id":
 				tempID = info
@@ -102,14 +116,64 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 					if p.GetDataFinished() {
 						sPool.AddPackets(p)
 					}
-
 					pack = nil
 				}
+				break
+			// realtime deal packets
+			case "timestamp": // string
+				p := GetRealtimeTradingInstance()
+				if p.Timestamp != "" {
+					// check the packets timestamp
+					if p.Timestamp != info {
+						p = ResetRealtimeTradingInstance()
+					}
+				}
+				p.Timestamp = info
+				p.ID = tempID
+				break
+			case "type": //int
+				p := GetRealtimeTradingInstance()
+				i, _ := strconv.Atoi(info)
+				currentType = int(i)
+				p.Type = currentType
+				break
+			case "deal_price": // float64
+				p := GetRealtimeTradingInstance()
+				f, _ := strconv.ParseFloat(info, 64)
+				currentDeal = f
+				p.Deal = currentDeal
+				break
+			case "order_count": // float64
+				p := GetRealtimeTradingInstance()
+				f, _ := strconv.ParseFloat(info, 64)
+				p.OrderCount = f
+				break
+			case "total_count": // float64
+				p := GetRealtimeTradingInstance()
+				f, _ := strconv.ParseFloat(info, 64)
+				p.TotalCount = f
+				break
+			case "total_amount": // float64
+				p := GetRealtimeTradingInstance()
+				i, _ := strconv.Atoi(info)
+				p.TotalAmount = i
 				break
 			default:
 				break
 			}
 
+			if grtInstance := GetRealtimeTradingInstance(); grtInstance.Deal == 0 {
+				grtInstance.Type = currentType
+			}
+
+			if grtInstance := GetRealtimeTradingInstance(); grtInstance.Deal == 0 {
+				grtInstance.Deal = currentDeal
+			}
+
+			if GetRealtimeTradingInstance().IsFinished() {
+				sPool.AddPackets(*GetRealtimeTradingInstance())
+				ResetRealtimeTradingInstance()
+			}
 		}
 	}
 }

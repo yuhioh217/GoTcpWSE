@@ -24,7 +24,7 @@ func (r *RealtimeFive) SetFive(Five string) {
 
 // GetDataFinished to check the data is ready to pool
 func (r *RealtimeFive) GetDataFinished() bool {
-	if r.ID != "" && r.Type != 0 && r.Five != "" {
+	if r.ID != "" && r.Five != "" {
 		return true
 	}
 	return false

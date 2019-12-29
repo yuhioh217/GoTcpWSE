@@ -6,8 +6,8 @@ import (
 )
 
 var (
-	lock     *sync.Mutex = &sync.Mutex{}
-	instance *PacketsPool
+	lock         *sync.Mutex = &sync.Mutex{}
+	poolInstance *PacketsPool
 )
 
 // PacketsPool is the pool that will lot of processing packets struct in it.
@@ -17,20 +17,21 @@ type PacketsPool struct {
 
 // GetInstance to create singleton struct if there is no instance
 func GetInstance() *PacketsPool {
-	if instance == nil {
+	if poolInstance == nil {
 		lock.Lock()
 		defer lock.Unlock()
-		if instance == nil {
-			instance = &PacketsPool{}
+		if poolInstance == nil {
+			poolInstance = &PacketsPool{}
 			fmt.Println("instance...")
 		}
 	}
-	return instance
+	return poolInstance
 }
 
 // ResetPacketsPool the instance to nil and empty the Packets interface in PacketsPool
-func ResetPacketsPool() {
-	instance = nil
+func ResetPacketsPool() *PacketsPool {
+	poolInstance = nil
+	return GetInstance()
 }
 
 // AddPackets will append the packets to slice
