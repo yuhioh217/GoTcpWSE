@@ -162,7 +162,7 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 				break
 			}
 
-			if grtInstance := GetRealtimeTradingInstance(); grtInstance.Deal == 0 {
+			if grtInstance := GetRealtimeTradingInstance(); grtInstance.Type == 0 {
 				grtInstance.Type = currentType
 			}
 
