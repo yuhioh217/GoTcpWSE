@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -76,7 +77,7 @@ var currentType int
 var currentDeal float64
 
 func packageQueue(packStr string) { //, pq *s.PQueue) {
-	//fmt.Printf(PacketsColor+" :%s\n", "Packets", packStr)
+	fmt.Printf(PacketsColor+" :%s\n", "Packets", packStr)
 	// process single package
 	var pack interface{}
 	var tempID string
@@ -162,18 +163,18 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 				break
 			}
 
-			if grtInstance := GetRealtimeTradingInstance(); grtInstance.Type == 0 {
-				grtInstance.Type = currentType
-			}
-
-			if grtInstance := GetRealtimeTradingInstance(); grtInstance.Deal == 0 {
-				grtInstance.Deal = currentDeal
-			}
-
-			if GetRealtimeTradingInstance().IsFinished() {
-				sPool.AddPackets(*GetRealtimeTradingInstance())
-				ResetRealtimeTradingInstance()
-			}
 		}
+	}
+	if grtInstance := GetRealtimeTradingInstance(); grtInstance.Type == 0 {
+		grtInstance.Type = currentType
+	}
+
+	if grtInstance := GetRealtimeTradingInstance(); grtInstance.Deal == 0 {
+		grtInstance.Deal = currentDeal
+	}
+
+	if GetRealtimeTradingInstance().IsFinished() {
+		sPool.AddPackets(*GetRealtimeTradingInstance())
+		ResetRealtimeTradingInstance()
 	}
 }

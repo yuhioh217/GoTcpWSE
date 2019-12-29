@@ -1,6 +1,8 @@
 package api
 
-import "strings"
+import (
+	"strings"
+)
 
 // StringRule define the string type in packets
 func StringRule(str string) (string, string) {
