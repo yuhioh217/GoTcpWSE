@@ -34,7 +34,7 @@ func ResetTimeTradingInstance() *RealtimeTrading {
 // IsFinished check the data is filled or not
 func (r *RealtimeTrading) IsFinished() bool {
 	if r.ID != "" && r.Timestamp != "" && r.Type != 0 && r.Deal != 0 &&
-		r.OrderCount != 0 && r.TotalCount != 0 {
+		r.OrderCount != 0 && r.TotalAmount != 0 && r.TotalCount != 0 {
 		return true
 	}
 	return false

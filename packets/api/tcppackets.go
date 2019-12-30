@@ -103,6 +103,7 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 	}()
 
 	<-final
+
 	for _, value := range GetCurrentPool().Packets {
 		switch v := value.(type) {
 		case structure.RealtimeFive:
@@ -111,9 +112,9 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 		case structure.RealtimeTrading:
 			switch v.Type {
 			case 1:
-				fmt.Printf("\033[0;32mTime:%s StockID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
+				fmt.Printf("\033[0;32mTime:%s ID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
 			case 2:
-				fmt.Printf("\033[0;31mTime:%s StockID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
+				fmt.Printf("\033[0;31mTime:%s ID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
 			}
 
 			break

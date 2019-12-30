@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -75,9 +74,10 @@ func ResetRealtimeTradingInstance() *structure.RealtimeTrading {
 var sPool *structure.PacketsPool
 var currentType int
 var currentDeal float64
+var currentOrderCount float64
 
 func packageQueue(packStr string) { //, pq *s.PQueue) {
-	fmt.Printf(PacketsColor+" :%s\n", "Packets", packStr)
+	// fmt.Printf(PacketsColor+" :%s\n", "Packets", packStr)
 	// process single package
 	var pack interface{}
 	var tempID string
@@ -147,7 +147,8 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 			case "order_count": // float64
 				p := GetRealtimeTradingInstance()
 				f, _ := strconv.ParseFloat(info, 64)
-				p.OrderCount = f
+				currentOrderCount = f
+				p.OrderCount = currentOrderCount
 				break
 			case "total_count": // float64
 				p := GetRealtimeTradingInstance()
@@ -171,6 +172,10 @@ func packageQueue(packStr string) { //, pq *s.PQueue) {
 
 	if grtInstance := GetRealtimeTradingInstance(); grtInstance.Deal == 0 {
 		grtInstance.Deal = currentDeal
+	}
+
+	if grtInstance := GetRealtimeTradingInstance(); grtInstance.OrderCount == 0 {
+		grtInstance.OrderCount = currentOrderCount
 	}
 
 	if GetRealtimeTradingInstance().IsFinished() {
