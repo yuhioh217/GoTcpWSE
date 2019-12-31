@@ -110,6 +110,7 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 			//fmt.Println(v)
 			break
 		case structure.RealtimeTrading:
+			//fmt.Println(v)
 			switch v.Type {
 			case 1:
 				fmt.Printf("\033[0;32mTime:%s ID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
