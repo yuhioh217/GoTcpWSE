@@ -15,6 +15,8 @@ type PacketsPool struct {
 	Packets []interface{}
 }
 
+
+
 // GetInstance to create singleton struct if there is no instance
 func GetInstance() *PacketsPool {
 	if poolInstance == nil {
