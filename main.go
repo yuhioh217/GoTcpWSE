@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"./packets/api"
 )
@@ -13,9 +14,13 @@ func isError(err error) {
 }
 
 func main() {
-	f := api.TCPPcapng("./pcapng/packet_20191218_2337__00001_20191218091121.pcapng")
+
+	startTime := time.Now()
+	f := api.TCPPcapng("./pcapng/packet_20191224_3019_00001_20191224090005.pcapng")
 	packetSource := api.PCAParse(f)
 	api.PackageDispatch(packetSource, func() {
 		fmt.Println("After PackageDispatching")
 	})
+	uptime := time.Since(startTime)
+	fmt.Println("Process time : ", uptime)
 }

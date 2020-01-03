@@ -17,6 +17,7 @@ type task struct {
 
 // PackageDispatch to dispatch the packet to goroutines
 func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
+
 	DEBUG := false
 	var currentState = make(map[string]string)
 	tasks := make(chan task)
