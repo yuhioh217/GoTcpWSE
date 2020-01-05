@@ -1,4 +1,4 @@
-package main
+package strategy
 
 import (
 	"fmt"
@@ -14,8 +14,16 @@ var (
 	lock       *sync.Mutex = &sync.Mutex{}
 	sbInstance *SBratio
 	df         dataframe.DataFrame
+	slopeArr   []SlopeM
 )
 
+// SlopeM struct to No./amount coordinate data save
+type SlopeM struct {
+	Direction int
+	Result    float64
+}
+
+// SBratio struct to save the sell/buy ratio data
 type SBratio struct {
 	Sell       int
 	Buy        int
@@ -25,6 +33,7 @@ type SBratio struct {
 	//Bratio float64
 }
 
+// GetSBratioInstance : create or get the current SBratio instance (only the single instance)
 func GetSBratioInstance() *SBratio {
 	if sbInstance == nil {
 		lock.Lock()
@@ -34,18 +43,22 @@ func GetSBratioInstance() *SBratio {
 	return sbInstance
 }
 
+// AddSell : add sell count
 func (sb *SBratio) AddSell(s int) {
 	sb.Sell = sb.Sell + s
 }
 
+// AddBuy : add buy count
 func (sb *SBratio) AddBuy(b int) {
 	sb.Buy = sb.Buy + b
 }
 
+// AddTotal to add the total trading count
 func (sb *SBratio) AddTotal(t int) {
 	sb.Total = sb.Total + t
 }
 
+// UpdateAccumulate to update the current accumulative amount
 func (sb *SBratio) UpdateAccumulate(t int, a int) {
 	switch t {
 	case 1:
@@ -54,33 +67,34 @@ func (sb *SBratio) UpdateAccumulate(t int, a int) {
 		} else {
 			sb.Accumulate = append(sb.Accumulate, sb.Accumulate[len(sb.Accumulate)-1]-a)
 		}
-		break
 	case 2:
 		if len(sb.Accumulate) == 0 {
 			sb.Accumulate = append(sb.Accumulate, a)
 		} else {
 			sb.Accumulate = append(sb.Accumulate, sb.Accumulate[len(sb.Accumulate)-1]+a)
 		}
-		break
 	default:
 		break
 	}
-
 }
 
+// GetSratio get the Sell - Total ratio
 func (sb *SBratio) GetSratio() float64 {
 	return float64(sb.Sell) / float64(sb.Total)
 }
 
+// GetBratio get the Buy - Total ratio
 func (sb *SBratio) GetBratio() float64 {
 	return float64(sb.Buy) / float64(sb.Total)
 }
 
+// Coordinate to save the each packet amount data to (x, y) -> (No. , amount)
 type Coordinate struct {
 	PacketNo int // coordinate x
 	Amount   int // coordinate y
 }
 
+// Info struct to save the each deal info
 type Info struct {
 	Time       string
 	Deal       float64
@@ -89,6 +103,7 @@ type Info struct {
 	TotalCount int
 }
 
+// NewModel2Dataframe to new the packets dataframe
 func NewModel2Dataframe(rows []Info) {
 	df = dataframe.LoadStructs(rows)
 	Model2Calculate()
@@ -100,6 +115,7 @@ func checkError(err error) {
 	}
 }
 
+// Model2Calculate is the entry to run the model2
 func Model2Calculate() {
 	sbRatio := GetSBratioInstance()
 	//timeArr := df.Col("Time").String()
@@ -130,18 +146,31 @@ func Model2Calculate() {
 	if bratio, sratio := sbRatio.GetBratio(), sbRatio.GetSratio(); bratio != 0 && sratio != 0 {
 		if len(oca) > 9 { // do nothing before 9:00:00 - 9:00:30 > about 5 packets data
 			//if (sratio / bratio) < 0.67 { // 40%/60% -> go to sell
-			GetContinuousTenSlope(da, oca)
-			/*lastAmount := int(da[len(da)-1] * 1000 * float64(oca[len(oca)-1]))
-			fmt.Println("lastAmount : ", lastAmount)
+			lastAmount := int(da[len(da)-1] * 1000 * float64(oca[len(oca)-1]))
+			d, result := GetContinuousTenSlope(da, oca)
+			slopeArr = append(slopeArr, SlopeM{d, result})
+			fmt.Println("lastAmount : ", lastAmount, "    ---", GetPreTenAverageAmount(da, oca))
+
 			// if current trading amount is over pre-ten trading average amount
-			if lastAmount >= GetPreTenAverageAmount(da, oca)*2 {
-				fmt.Println("Strong buy")
-			}*/
+			fmt.Println((sratio / bratio))
+			fmt.Println((bratio / sratio))
+			if lastAmount >= GetPreTenAverageAmount(da, oca)*2 &&
+				//ta[len(ta)-1] == slopeArr[len(slopeArr)-1].Direction &&
+				slopeArr[len(slopeArr)-1].Result/slopeArr[len(slopeArr)-2].Result > 1.5 {
+
+				if slopeArr[len(slopeArr)-1].Direction == 2 && (sratio/bratio) < 0.9 {
+					fmt.Printf("\033[0;34mCurrent Packets Deal Amount is bigger than the pre-ten deals average amount. (Strong buy)\033[0m \n")
+				} else if slopeArr[len(slopeArr)-1].Direction == 1 && (bratio/sratio) < 0.9 {
+					fmt.Printf("\033[0;34mCurrent Packets Deal Amount is bigger than the pre-ten deals average amount. (Strong Sell)\033[0m \n")
+				}
+
+			}
 			//}
 		}
 	}
 }
 
+// GetContinuousTenSlope to get the continuous ten (first and tenth point's slope(M))
 func GetContinuousTenSlope(dealArr []float64, ocaArr []int) (int, float64) {
 	tempCoordinate := []Coordinate{}
 	direction := 0 // 1 -> down , 2 -> up
@@ -169,15 +198,16 @@ func GetContinuousTenSlope(dealArr []float64, ocaArr []int) (int, float64) {
 	return direction, math.Abs(divideResult)
 }
 
+// GetPreTenAverageAmount to get the pre ten deal average amount
 func GetPreTenAverageAmount(dealArr []float64, ocaArr []int) int {
-	fmt.Print("Get the pre-ten deals average amount : ")
+	// fmt.Print("Get the pre-ten deals average amount : ")
 	sum := 0.0
 	for i := len(dealArr) - 2; i > len(dealArr)-10 && i >= 0; i-- {
 		// fmt.Printf("%.2f * %d \n", dealArr[i], ocaArr[i])
 		sum += dealArr[i] * 1000 * float64(ocaArr[i])
 	}
-	fmt.Println(int(sum / float64(len(dealArr))))
-	return int(sum / float64(len(dealArr)))
+	//fmt.Println(int(sum / float64(len(dealArr))))
+	return int(sum / 10)
 }
 
 func main() {
@@ -202,13 +232,14 @@ func main() {
 		{"13:22:39", 36.80, 1, 20, 34},
 		{"13:22:39", 36.85, 2, 1, 34},
 		{"13:22:39", 36.85, 2, 3, 34},
-		{"13:22:39", 36.85, 2, 31, 34},
+		{"13:22:39", 36.85, 1, 31, 34},
 		{"13:22:39", 36.80, 1, 9, 34},
 		{"13:22:39", 36.80, 1, 5, 34},
 	}
 
 	for _, t := range test {
 		rows = append(rows, t)
+		// ordering the packet info
 		NewModel2Dataframe(rows)
 	}
 }

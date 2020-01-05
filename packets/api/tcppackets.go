@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"../strategy"
 	"../structure"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
@@ -17,7 +18,7 @@ type task struct {
 
 // PackageDispatch to dispatch the packet to goroutines
 func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
-
+	rows := []strategy.Info{}
 	DEBUG := false
 	var currentState = make(map[string]string)
 	tasks := make(chan task)
@@ -105,21 +106,33 @@ func PackageDispatch(packetSource *gopacket.PacketSource, todo interface{}) {
 
 	<-final
 
+	tempPackets := structure.RealtimeTrading{}
 	for _, value := range GetCurrentPool().Packets {
+
 		switch v := value.(type) {
 		case structure.RealtimeFive:
 			//fmt.Println(v)
 			break
 		case structure.RealtimeTrading:
-			//fmt.Println(v)
-			switch v.Type {
-			case 1:
-				fmt.Printf("\033[0;32mTime:%s ID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
-			case 2:
-				fmt.Printf("\033[0;31mTime:%s ID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
+			if tempPackets.Timestamp == v.Timestamp {
+				break
+			} else {
+				tempPackets = v
+				fmt.Println(tempPackets)
+				switch v.Type {
+				case 3:
+					fmt.Printf("\033[0;32mTime:%s ID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
+				case 4:
+					fmt.Printf("\033[0;31mTime:%s ID:%s Deal:%.2f OrderCount:%d TotalCount: %d\033[0m\n", v.Timestamp, v.ID, v.Deal, int(v.OrderCount), int(v.TotalCount))
+				}
+
+				t := strategy.Info{Time: v.Timestamp, Deal: v.Deal, Type: v.Type, OrderCount: int(v.OrderCount), TotalCount: int(v.TotalCount)}
+				//fmt.Println(t)
+				rows = append(rows, t)
+				// ordering the packet info
+				strategy.NewModel2Dataframe(rows)
 			}
 
-			break
 		}
 
 	}

@@ -77,7 +77,7 @@ var currentDeal float64
 var currentOrderCount float64
 
 func packageQueue(packStr string) { //, pq *s.PQueue) {
-	// fmt.Printf(PacketsColor+" :%s\n", "Packets", packStr)
+	//fmt.Printf(PacketsColor+" :%s\n", "Packets", packStr)
 	// process single package
 	var pack interface{}
 	var tempID string
