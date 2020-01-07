@@ -5,6 +5,7 @@ import (
 	"math"
 	"sync"
 
+	"../structure"
 	"github.com/go-gota/gota/dataframe"
 )
 
@@ -15,6 +16,7 @@ var (
 	sbInstance *SBratio
 	df         dataframe.DataFrame
 	slopeArr   []SlopeM
+	i          int
 )
 
 // SlopeM struct to No./amount coordinate data save
@@ -118,7 +120,7 @@ func checkError(err error) {
 // Model2Calculate is the entry to run the model2
 func Model2Calculate() {
 	sbRatio := GetSBratioInstance()
-	//timeArr := df.Col("Time").String()
+	timeArr := df.Col("Time").Records()
 	da := df.Col("Deal").Float()    // deal array
 	ta, err := df.Col("Type").Int() // type array
 	checkError(err)
@@ -141,32 +143,38 @@ func Model2Calculate() {
 	default:
 		break
 	}
-
 	//fmt.Println(sbRatio)
 	if bratio, sratio := sbRatio.GetBratio(), sbRatio.GetSratio(); bratio != 0 && sratio != 0 {
-		if len(oca) > 9 { // do nothing before 9:00:00 - 9:00:30 > about 5 packets data
+		if len(oca) > 11 { // do nothing before 9:00:00 - 9:00:30 > about 5 packets data
 			//if (sratio / bratio) < 0.67 { // 40%/60% -> go to sell
 			lastAmount := int(da[len(da)-1] * 1000 * float64(oca[len(oca)-1]))
 			d, result := GetContinuousTenSlope(da, oca)
 			slopeArr = append(slopeArr, SlopeM{d, result})
-			fmt.Println("lastAmount : ", lastAmount, "    ---", GetPreTenAverageAmount(da, oca))
+			fmt.Println("LastAmount :", lastAmount, ", Pre-10 average :", GetPreTenAverageAmount(da, oca))
 
 			// if current trading amount is over pre-ten trading average amount
 			fmt.Println((sratio / bratio))
 			fmt.Println((bratio / sratio))
-			if lastAmount >= GetPreTenAverageAmount(da, oca)*2 &&
+			if lastAmount >= int(float64(GetPreTenAverageAmount(da, oca))*6) &&
 				//ta[len(ta)-1] == slopeArr[len(slopeArr)-1].Direction &&
-				slopeArr[len(slopeArr)-1].Result/slopeArr[len(slopeArr)-2].Result > 1.5 {
+				slopeArr[len(slopeArr)-1].Result/slopeArr[len(slopeArr)-2].Result > 1.3 {
 
-				if slopeArr[len(slopeArr)-1].Direction == 2 && (sratio/bratio) < 0.9 {
+				if slopeArr[len(slopeArr)-1].Direction == 2 && (sratio/bratio) < 1 {
+					each := structure.EachHold{Deal: da[len(da)-1], Type: 2, Count: 1}
+					structure.GetCurrentDealInstance().AddHolding(each)
 					fmt.Printf("\033[0;34mCurrent Packets Deal Amount is bigger than the pre-ten deals average amount. (Strong buy)\033[0m \n")
-				} else if slopeArr[len(slopeArr)-1].Direction == 1 && (bratio/sratio) < 0.9 {
+				} else if slopeArr[len(slopeArr)-1].Direction == 1 && (bratio/sratio) < 1 {
+					each := structure.EachHold{Deal: da[len(da)-1], Type: 1, Count: 1}
+					structure.GetCurrentDealInstance().AddHolding(each)
 					fmt.Printf("\033[0;34mCurrent Packets Deal Amount is bigger than the pre-ten deals average amount. (Strong Sell)\033[0m \n")
 				}
 
 			}
 			//}
 		}
+	}
+	if len(structure.GetCurrentDealInstance().Keep) != 0 && timeArr[len(timeArr)-1] == "13:30:00" {
+		structure.GetCurrentDealInstance().ReleaseAllHolding(da[len(da)-1])
 	}
 }
 
